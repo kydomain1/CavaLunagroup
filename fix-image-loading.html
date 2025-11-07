@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片加载问题修复工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        .error-box h3 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+        .error-box code {
+            display: block;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+        }
+        .test-section h2 {
+            color: #2196f3;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+        .solution {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        .solution:hover {
+            border-color: #2196f3;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+        }
+        .solution h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .solution-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #2196f3;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .image-preview {
+            margin: 20px 0;
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        .image-preview img {
+            max-width: 400px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .info-box strong {
+            color: #1976d2;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .checklist li:hover {
+            background: #f5f5f5;
+        }
+        .checklist li::before {
+            content: '○';
+            margin-right: 12px;
+            font-size: 20px;
+            color: #999;
+        }
+        .checklist li.checked::before {
+            content: '✓';
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .result-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        #diagnosticResult {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 图片加载问题修复工具</h1>
+        <p class="subtitle">Baratza Encore 咖啡研磨机图片加载失败诊断</p>
+
+        <!-- 错误信息 -->
+        <div class="error-box">
+            <h3>❌ 检测到的错误</h3>
+            <p><strong>错误信息:</strong></p>
+            <code>Failed to load image: https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop</code>
+            <p style="margin-top: 15px;"><strong>错误位置:</strong> article-detail.js:62</p>
+            <p><strong>问题图片:</strong> Baratza Encore Conical Burr Grinder</p>
+        </div>
+
+        <!-- 自动诊断 -->
+        <div class="test-section">
+            <h2>🔍 步骤1: 自动诊断</h2>
+            <p style="margin-bottom: 20px;">点击下面的按钮开始诊断问题原因</p>
+            <button onclick="runDiagnostics()" class="success">🚀 开始自动诊断</button>
+            <div class="progress-bar" id="progressBar" style="display: none;">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div id="diagnosticResult"></div>
+        </div>
+
+        <!-- 解决方案 -->
+        <div class="test-section">
+            <h2>💡 步骤2: 尝试解决方案</h2>
+
+            <div class="solution">
+                <h3><span class="solution-number">1</span>清除浏览器缓存（最常见）</h3>
+                <p style="margin-bottom: 15px;">缓存问题是图片加载失败的最常见原因</p>
+                <button onclick="clearCacheGuide()">📋 查看清除缓存教程</button>
+                <button onclick="testAfterCache()" class="secondary">✓ 我已清除，重新测试</button>
+                <div id="cacheGuide" style="display: none; margin-top: 15px;"></div>
+            </div>
+
+            <div class="solution">
+                <h3><span class="solution-number">2</span>测试优化的图片URL</h3>
+                <p style="margin-bottom: 15px;">使用添加了完整参数的优化URL</p>
+                <button onclick="testOptimizedUrl()">🔄 测试优化URL</button>
+                <div id="optimizedTest"></div>
+            </div>
+
+            <div class="solution">
+                <h3><span class="solution-number">3</span>检查网络连接</h3>
+                <p style="margin-bottom: 15px;">测试是否可以访问Unsplash服务</p>
+                <button onclick="testUnsplashConnection()">🌐 测试Unsplash连接</button>
+                <div id="connectionTest"></div>
+            </div>
+
+            <div class="solution">
+                <h3><span class="solution-number">4</span>使用替代图片</h3>
+                <p style="margin-bottom: 15px;">如果Unsplash不可用，使用其他咖啡研磨机图片</p>
+                <button onclick="showAlternatives()">🖼️ 查看替代方案</button>
+                <div id="alternatives"></div>
+            </div>
+        </div>
+
+        <!-- 快速修复 -->
+        <div class="test-section">
+            <h2>⚡ 步骤3: 快速修复</h2>
+            <div class="info-box">
+                <strong>💡 提示:</strong> 如果诊断显示是网络或Unsplash服务问题，最快的解决方法是：
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>等待几分钟后重试</li>
+                    <li>使用VPN或代理</li>
+                    <li>联系网络管理员</li>
+                    <li>使用备用图片</li>
+                </ul>
+            </div>
+            <button onclick="window.location.href='article.html?id=5'" class="success">🔍 打开文章测试</button>
+            <button onclick="window.location.href='test-article-images.html'" class="secondary">🧪 打开测试工具</button>
+        </div>
+
+        <!-- 验证清单 -->
+        <div class="test-section">
+            <h2>✅ 故障排除清单</h2>
+            <ul class="checklist">
+                <li id="check1">检查网络连接是否正常</li>
+                <li id="check2">确认可以访问其他网站</li>
+                <li id="check3">清除浏览器缓存</li>
+                <li id="check4">禁用浏览器扩展（特别是广告拦截）</li>
+                <li id="check5">尝试使用无痕模式</li>
+                <li id="check6">检查防火墙或代理设置</li>
+                <li id="check7">尝试使用其他浏览器</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const originalUrl = 'https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop';
+        const optimizedUrl = 'https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop&q=80&auto=format&fm=jpg';
+
+        async function runDiagnostics() {
+            const result = document.getElementById('diagnosticResult');
+            const progress = document.getElementById('progressBar');
+            const fill = document.getElementById('progressFill');
+            
+            progress.style.display = 'block';
+            result.innerHTML = '<div class="status loading">🔄 正在诊断...</div>';
+
+            let html = '<div class="result-box"><h3>诊断结果:</h3>';
+            let progress_val = 0;
+
+            // 测试1: 网络连接
+            fill.style.width = '20%';
+            html += '<p><strong>1. 网络连接测试:</strong> ';
+            if (navigator.onLine) {
+                html += '<span class="status success">✓ 在线</span></p>';
+            } else {
+                html += '<span class="status error">✗ 离线</span></p>';
+            }
+
+            await sleep(500);
+
+            // 测试2: DNS解析
+            fill.style.width = '40%';
+            html += '<p><strong>2. Unsplash可访问性:</strong> ';
+            const canAccessUnsplash = await testImageLoad('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100');
+            if (canAccessUnsplash) {
+                html += '<span class="status success">✓ 可以访问</span></p>';
+            } else {
+                html += '<span class="status error">✗ 无法访问</span></p>';
+            }
+
+            await sleep(500);
+
+            // 测试3: 原始URL
+            fill.style.width = '60%';
+            html += '<p><strong>3. 原始图片URL:</strong> ';
+            const originalWorks = await testImageLoad(originalUrl);
+            if (originalWorks) {
+                html += '<span class="status success">✓ 可以加载</span></p>';
+            } else {
+                html += '<span class="status error">✗ 加载失败</span></p>';
+            }
+
+            await sleep(500);
+
+            // 测试4: 优化URL
+            fill.style.width = '80%';
+            html += '<p><strong>4. 优化图片URL:</strong> ';
+            const optimizedWorks = await testImageLoad(optimizedUrl);
+            if (optimizedWorks) {
+                html += '<span class="status success">✓ 可以加载</span></p>';
+            } else {
+                html += '<span class="status error">✗ 加载失败</span></p>';
+            }
+
+            fill.style.width = '100%';
+
+            // 诊断结论
+            html += '<hr style="margin: 20px 0;"><h3>🎯 诊断结论:</h3>';
+            
+            if (!navigator.onLine) {
+                html += '<div class="status error" style="display: block; padding: 15px;">❌ <strong>网络连接问题</strong><br>您的设备似乎没有连接到互联网。请检查网络连接后重试。</div>';
+            } else if (!canAccessUnsplash) {
+                html += '<div class="status error" style="display: block; padding: 15px;">❌ <strong>无法访问Unsplash服务</strong><br>可能原因：<br>1. Unsplash服务暂时不可用<br>2. 网络防火墙或代理阻止访问<br>3. DNS解析问题<br><br>建议：尝试使用VPN或等待一段时间后重试。</div>';
+            } else if (originalWorks || optimizedWorks) {
+                html += '<div class="status success" style="display: block; padding: 15px;">✅ <strong>图片可以正常加载</strong><br>诊断显示图片URL是有效的。如果在文章中仍然看不到图片，请：<br>1. 清除浏览器缓存<br>2. 按Ctrl+F5强制刷新页面<br>3. 检查浏览器控制台是否有其他错误</div>';
+            } else {
+                html += '<div class="status warning" style="display: block; padding: 15px;">⚠️ <strong>图片加载不稳定</strong><br>可能原因：<br>1. 浏览器缓存问题<br>2. 临时网络波动<br>3. 浏览器扩展干扰<br><br>建议：清除缓存并在无痕模式下测试。</div>';
+            }
+
+            html += '</div>';
+            result.innerHTML = html;
+        }
+
+        function testImageLoad(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const timeout = setTimeout(() => {
+                    resolve(false);
+                }, 5000);
+
+                img.onload = () => {
+                    clearTimeout(timeout);
+                    resolve(true);
+                };
+                img.onerror = () => {
+                    clearTimeout(timeout);
+                    resolve(false);
+                };
+                img.src = url;
+            });
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function clearCacheGuide() {
+            const guide = document.getElementById('cacheGuide');
+            guide.style.display = 'block';
+            guide.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <h4 style="color: #333; margin-bottom: 15px;">清除缓存步骤:</h4>
+                    
+                    <div style="margin: 15px 0;">
+                        <strong>Chrome / Edge:</strong>
+                        <ol style="margin-top: 10px; padding-left: 20px; line-height: 1.8;">
+                            <li>按 <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">Ctrl + Shift + Delete</code></li>
+                            <li>选择时间范围：<strong>所有时间</strong></li>
+                            <li>勾选 "缓存的图片和文件"</li>
+                            <li>点击 "清除数据"</li>
+                            <li>刷新页面 (F5)</li>
+                        </ol>
+                    </div>
+
+                    <div style="margin: 15px 0;">
+                        <strong>Firefox:</strong>
+                        <ol style="margin-top: 10px; padding-left: 20px; line-height: 1.8;">
+                            <li>按 <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px;">Ctrl + Shift + Delete</code></li>
+                            <li>选择时间范围：<strong>全部</strong></li>
+                            <li>勾选 "缓存"</li>
+                            <li>点击 "立即清除"</li>
+                            <li>刷新页面 (F5)</li>
+                        </ol>
+                    </div>
+
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>💡 提示:</strong> 清除缓存后，首次加载可能会稍慢，这是正常现象。
+                    </div>
+                </div>
+            `;
+        }
+
+        async function testAfterCache() {
+            const result = document.getElementById('cacheGuide');
+            result.innerHTML = '<div class="status loading">🔄 正在测试...</div>';
+            
+            const works = await testImageLoad(optimizedUrl);
+            
+            if (works) {
+                result.innerHTML = `
+                    <div class="status success" style="display: block; padding: 15px; margin-top: 15px;">
+                        ✅ <strong>太好了！图片现在可以加载了！</strong><br>
+                        请打开文章页面验证：<br>
+                        <button onclick="window.location.href='article.html?id=5'" style="margin-top: 10px;">
+                            📄 打开咖啡文章
+                        </button>
+                    </div>
+                `;
+                document.getElementById('check3').classList.add('checked');
+            } else {
+                result.innerHTML = `
+                    <div class="status warning" style="display: block; padding: 15px; margin-top: 15px;">
+                        ⚠️ 图片仍然无法加载。请尝试其他解决方案。
+                    </div>
+                `;
+            }
+        }
+
+        async function testOptimizedUrl() {
+            const result = document.getElementById('optimizedTest');
+            result.innerHTML = '<div class="status loading">🔄 正在测试优化URL...</div>';
+            
+            await sleep(500);
+            
+            const works = await testImageLoad(optimizedUrl);
+            
+            if (works) {
+                result.innerHTML = `
+                    <div style="margin-top: 15px;">
+                        <div class="status success">✅ 优化URL可以加载！</div>
+                        <div class="image-preview">
+                            <img src="${optimizedUrl}" alt="Coffee grinder">
+                            <p style="margin-top: 15px; color: #666;">Baratza Encore Conical Burr Grinder</p>
+                        </div>
+                        <div class="info-box">
+                            <strong>好消息！</strong> 图片已经可以正常加载了。<br>
+                            优化后的URL: <code style="font-size: 12px; display: block; margin-top: 10px;">${optimizedUrl}</code>
+                        </div>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="status error" style="display: block; padding: 15px; margin-top: 15px;">
+                        ❌ 优化URL也无法加载。这可能表示网络连接或Unsplash服务的问题。
+                    </div>
+                `;
+            }
+        }
+
+        async function testUnsplashConnection() {
+            const result = document.getElementById('connectionTest');
+            result.innerHTML = '<div class="status loading">🔄 正在测试Unsplash连接...</div>';
+            
+            await sleep(500);
+            
+            // 测试多个Unsplash图片
+            const testUrls = [
+                'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=100&h=100',
+                'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=100&h=100',
+                'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=100&h=100'
+            ];
+            
+            let successCount = 0;
+            for (const url of testUrls) {
+                if (await testImageLoad(url)) {
+                    successCount++;
+                }
+            }
+            
+            if (successCount === testUrls.length) {
+                result.innerHTML = `
+                    <div class="status success" style="display: block; padding: 15px; margin-top: 15px;">
+                        ✅ <strong>Unsplash服务正常</strong><br>
+                        测试了${testUrls.length}张图片，全部成功加载。<br>
+                        您的网络可以正常访问Unsplash。
+                    </div>
+                `;
+                document.getElementById('check1').classList.add('checked');
+                document.getElementById('check2').classList.add('checked');
+            } else if (successCount > 0) {
+                result.innerHTML = `
+                    <div class="status warning" style="display: block; padding: 15px; margin-top: 15px;">
+                        ⚠️ <strong>连接不稳定</strong><br>
+                        测试了${testUrls.length}张图片，成功加载${successCount}张。<br>
+                        建议：检查网络连接稳定性。
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="status error" style="display: block; padding: 15px; margin-top: 15px;">
+                        ❌ <strong>无法访问Unsplash</strong><br>
+                        所有测试图片都加载失败。<br>
+                        可能原因：<br>
+                        • 防火墙或代理阻止访问<br>
+                        • DNS解析问题<br>
+                        • Unsplash服务暂时不可用<br>
+                        • 需要VPN才能访问
+                    </div>
+                `;
+            }
+        }
+
+        function showAlternatives() {
+            const result = document.getElementById('alternatives');
+            result.innerHTML = `
+                <div style="margin-top: 20px; background: white; padding: 20px; border-radius: 8px;">
+                    <h4 style="margin-bottom: 15px;">替代图片方案:</h4>
+                    
+                    <div class="info-box">
+                        <strong>方案A: 使用其他Unsplash咖啡研磨机图片</strong>
+                        <div style="margin-top: 15px;">
+                            <img src="https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop" 
+                                 alt="Alternative coffee grinder" 
+                                 style="max-width: 200px; border-radius: 8px; border: 2px solid #dee2e6;"
+                                 onload="this.nextElementSibling.innerHTML='<span class=\\'status success\\'>✅ 可以加载</span>'"
+                                 onerror="this.nextElementSibling.innerHTML='<span class=\\'status error\\'>❌ 加载失败</span>'">
+                            <div style="margin-top: 10px;">⏳ 测试中...</div>
+                        </div>
+                        <code style="font-size: 11px; display: block; margin-top: 10px;">
+                            https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=400&fit=crop
+                        </code>
+                    </div>
+
+                    <div class="info-box" style="margin-top: 15px;">
+                        <strong>方案B: 使用本地图片</strong>
+                        <p style="margin-top: 10px;">如果Unsplash完全不可用，建议：</p>
+                        <ol style="margin-top: 10px; padding-left: 20px;">
+                            <li>下载咖啡研磨机图片到本地</li>
+                            <li>保存到 <code>images/</code> 文件夹</li>
+                            <li>修改文章数据中的图片路径</li>
+                        </ol>
+                    </div>
+
+                    <div class="info-box" style="margin-top: 15px;">
+                        <strong>方案C: 使用占位图片服务</strong>
+                        <p style="margin-top: 10px;">临时替代方案：</p>
+                        <code>https://via.placeholder.com/400x400/CCCCCC/666666?text=Coffee+Grinder</code>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动运行诊断
+        window.addEventListener('load', () => {
+            console.log('图片修复工具已加载');
+            console.log('问题图片URL:', originalUrl);
+            console.log('优化图片URL:', optimizedUrl);
+            
+            // 3秒后自动开始诊断
+            setTimeout(() => {
+                console.log('开始自动诊断...');
+                runDiagnostics();
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>缓存状态检查工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-align: center;
+        }
+        .status-box {
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-box.checking {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+        .status-box.good {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        .status-box.bad {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .instructions h2 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 2;
+        }
+        .instructions code {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        .detail-box {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .detail-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .detail-box pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert.info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            color: #0c5460;
+        }
+        .alert.warning {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            color: #856404;
+        }
+        .alert.success {
+            background: #d4edda;
+            border-left: 4px solid #155724;
+            color: #155724;
+        }
+        .icon {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 缓存状态检查工具</h1>
+        
+        <div class="status-box checking" id="statusBox">
+            ⏳ 正在检查文件版本...
+        </div>
+
+        <div id="resultBox"></div>
+
+        <div class="instructions">
+            <h2>🚀 如果显示"需要清除缓存"</h2>
+            <ol>
+                <li>按 <code>Ctrl + Shift + Delete</code>（Windows）或 <code>Cmd + Shift + Delete</code>（Mac）</li>
+                <li>选择时间范围：<strong>全部时间</strong></li>
+                <li>勾选：<strong>缓存的图片和文件</strong></li>
+                <li>点击：<strong>清除数据</strong></li>
+                <li>完全关闭浏览器</li>
+                <li>重新打开浏览器</li>
+                <li>刷新此页面</li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <h2>⚡ 快速方法</h2>
+            <ol>
+                <li>按 <code>Ctrl + Shift + N</code> 打开无痕窗口</li>
+                <li>在无痕窗口中打开项目</li>
+                <li>测试效果</li>
+            </ol>
+        </div>
+
+        <button onclick="window.location.reload()">🔄 重新检查</button>
+        <button onclick="window.location.href='article.html?id=5'" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            📄 打开测试文章
+        </button>
+    </div>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        // 检查文件是否包含新代码（内嵌SVG）而非旧代码（placeholder）
+        function checkFileVersion() {
+            const statusBox = document.getElementById('statusBox');
+            const resultBox = document.getElementById('resultBox');
+            
+            // 读取 articles-data.js 的内容
+            // 通过检查 articlesData 是否存在来判断文件是否加载
+            if (typeof articlesData === 'undefined') {
+                statusBox.className = 'status-box bad';
+                statusBox.innerHTML = '❌ 无法加载 articles-data.js';
+                resultBox.innerHTML = `
+                    <div class="alert warning">
+                        <span class="icon">⚠️</span>
+                        <div>
+                            <strong>文件加载失败</strong><br>
+                            请确保在正确的目录中打开此文件。
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 将对象转换为字符串并检查
+            const dataString = JSON.stringify(articlesData);
+            
+            const hasPlaceholder = dataString.includes('via.placeholder.com');
+            const hasSVG = dataString.includes('data:image/svg+xml');
+            
+            let html = '<div class="detail-box"><h3>📊 检测结果</h3>';
+            
+            html += '<p><strong>检测项目：</strong></p><ul>';
+            html += `<li>包含 via.placeholder.com: ${hasPlaceholder ? '✅ 是（旧版本）' : '❌ 否（新版本）'}</li>`;
+            html += `<li>包含 data:image/svg+xml: ${hasSVG ? '✅ 是（新版本）' : '❌ 否（旧版本）'}</li>`;
+            html += '</ul>';
+            
+            html += '</div>';
+            
+            if (hasPlaceholder && !hasSVG) {
+                // 旧版本
+                statusBox.className = 'status-box bad';
+                statusBox.innerHTML = '❌ 需要清除缓存！浏览器使用的是旧文件';
+                
+                html += `
+                    <div class="alert warning">
+                        <span class="icon">⚠️</span>
+                        <div>
+                            <strong>检测到旧版本文件</strong><br>
+                            您的浏览器缓存了旧版本的 articles-data.js，仍在使用 placeholder.com。<br>
+                            <strong>解决方法：</strong> 请按照上面的步骤清除浏览器缓存。
+                        </div>
+                    </div>
+                `;
+            } else if (!hasPlaceholder && hasSVG) {
+                // 新版本
+                statusBox.className = 'status-box good';
+                statusBox.innerHTML = '✅ 文件已更新！使用的是新版本（内嵌SVG）';
+                
+                html += `
+                    <div class="alert success">
+                        <span class="icon">✅</span>
+                        <div>
+                            <strong>文件版本正确</strong><br>
+                            您的浏览器已加载最新版本的文件，使用的是内嵌SVG备用方案。<br>
+                            现在图片应该能正常显示了（即使Unsplash被阻止）。
+                        </div>
+                    </div>
+                    
+                    <div class="alert info">
+                        <span class="icon">ℹ️</span>
+                        <div>
+                            <strong>下一步</strong><br>
+                            点击下方的"打开测试文章"按钮，查看 Fellow Stagg EKG Electric Kettle 图片是否正常显示。
+                        </div>
+                    </div>
+                `;
+            } else if (hasPlaceholder && hasSVG) {
+                // 混合版本（不应该出现）
+                statusBox.className = 'status-box bad';
+                statusBox.innerHTML = '⚠️ 文件状态异常（包含新旧代码）';
+                
+                html += `
+                    <div class="alert warning">
+                        <span class="icon">⚠️</span>
+                        <div>
+                            <strong>文件状态异常</strong><br>
+                            文件中同时包含新旧代码，这不正常。<br>
+                            <strong>建议：</strong> 清除缓存并重新加载。
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 没有检测到任何备用方案
+                statusBox.className = 'status-box bad';
+                statusBox.innerHTML = '❌ 未检测到备用图片机制';
+                
+                html += `
+                    <div class="alert warning">
+                        <span class="icon">⚠️</span>
+                        <div>
+                            <strong>文件可能损坏</strong><br>
+                            没有检测到任何图片备用方案。<br>
+                            <strong>建议：</strong> 检查文件是否完整。
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 显示一个示例产品的备用图片代码
+            if (articlesData && articlesData.length > 0) {
+                const coffeeArticle = articlesData.find(a => a.id === 5);
+                if (coffeeArticle) {
+                    const contentPreview = coffeeArticle.content.substring(0, 1000);
+                    const productMatch = contentPreview.match(/onerror="([^"]+)"/);
+                    
+                    if (productMatch) {
+                        html += `
+                            <div class="detail-box">
+                                <h3>🔬 产品图片备用代码示例</h3>
+                                <p>从咖啡文章中提取的 onerror 代码：</p>
+                                <pre>${productMatch[1].substring(0, 200)}...</pre>
+                                ${productMatch[1].includes('data:image/svg+xml') ? 
+                                    '<p style="color: #28a745; font-weight: bold;">✅ 使用内嵌SVG（正确）</p>' : 
+                                    '<p style="color: #dc3545; font-weight: bold;">❌ 使用placeholder.com（需要更新）</p>'}
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            resultBox.innerHTML = html;
+        }
+
+        // 页面加载完成后自动检查
+        window.addEventListener('load', function() {
+            setTimeout(checkFileVersion, 500);
+        });
+    </script>
+</body>
+</html>
+

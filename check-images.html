@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片链接检查工具 - CavaLunagroup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.75rem;
+        }
+
+        .summary {
+            background: #e3f2fd;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2196f3;
+        }
+
+        .summary h2 {
+            font-size: 1.25rem;
+            color: #1976d2;
+            margin-bottom: 1rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number.success { color: #4caf50; }
+        .stat-number.error { color: #f44336; }
+        .stat-number.total { color: #2196f3; }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        .article-section {
+            margin-bottom: 2rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .article-header {
+            background: #fafafa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .article-header:hover {
+            background: #f0f0f0;
+        }
+
+        .article-title {
+            font-size: 1.125rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .article-meta {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-badge.checking {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .article-content {
+            padding: 1.5rem;
+            display: none;
+        }
+
+        .article-section.expanded .article-content {
+            display: block;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .image-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 150px;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #2196f3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .image-info {
+            padding: 0.75rem;
+        }
+
+        .image-type {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 0.25rem;
+        }
+
+        .image-url {
+            font-size: 0.75rem;
+            color: #999;
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+
+        .image-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .status-icon.success { background: #4caf50; }
+        .status-icon.error { background: #f44336; }
+        .status-icon.loading {
+            background: #ff9800;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .load-time {
+            color: #4caf50;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1976d2;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .loading-content .spinner {
+            margin: 0 auto 1rem;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+
+        .article-section.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 图片链接检查工具</h1>
+        <p style="color: #666; margin-bottom: 2rem;">检查所有文章中的图片是否能正常加载</p>
+
+        <div class="control-buttons">
+            <button class="btn-primary" onclick="checkAllImages()">开始检查</button>
+            <button class="btn-secondary" onclick="expandAll()">展开全部</button>
+            <button class="btn-secondary" onclick="collapseAll()">折叠全部</button>
+        </div>
+
+        <div class="summary">
+            <h2>检查结果摘要</h2>
+            <div class="summary-grid">
+                <div class="stat-card">
+                    <div class="stat-number total" id="totalImages">0</div>
+                    <div class="stat-label">总图片数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number success" id="successImages">0</div>
+                    <div class="stat-label">加载成功</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number error" id="errorImages">0</div>
+                    <div class="stat-label">加载失败</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successRate" style="color: #ff9800;">0%</div>
+                    <div class="stat-label">成功率</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="articlesContainer"></div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>正在检查图片...</p>
+        </div>
+    </div>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        let totalCount = 0;
+        let successCount = 0;
+        let errorCount = 0;
+
+        function extractImages(article) {
+            const images = [];
+            
+            // Featured image
+            if (article.featuredImage) {
+                images.push({
+                    url: article.featuredImage,
+                    type: 'Featured Image'
+                });
+            }
+
+            // Images in content
+            const contentImages = article.content.match(/<img[^>]+src="([^">]+)"/g);
+            if (contentImages) {
+                contentImages.forEach((imgTag, index) => {
+                    const srcMatch = imgTag.match(/src="([^">]+)"/);
+                    if (srcMatch) {
+                        images.push({
+                            url: srcMatch[1],
+                            type: `Content Image ${index + 1}`
+                        });
+                    }
+                });
+            }
+
+            return images;
+        }
+
+        function renderArticles() {
+            const container = document.getElementById('articlesContainer');
+            container.innerHTML = '';
+
+            articlesData.forEach(article => {
+                const images = extractImages(article);
+                totalCount += images.length;
+
+                const articleDiv = document.createElement('div');
+                articleDiv.className = 'article-section';
+                articleDiv.innerHTML = `
+                    <div class="article-header" onclick="toggleArticle(this)">
+                        <div>
+                            <div class="article-title">${article.title}</div>
+                            <div class="article-meta">文章ID: ${article.id} | ${article.categoryName} | ${images.length} 张图片</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="status-badge checking" data-article-id="${article.id}">待检查</span>
+                            <span class="expand-icon">▶</span>
+                        </div>
+                    </div>
+                    <div class="article-content">
+                        <div class="image-grid" data-article-id="${article.id}">
+                            ${images.map((img, index) => `
+                                <div class="image-card" data-image-index="${index}">
+                                    <div class="image-preview">
+                                        <div class="image-loading">
+                                            <div class="spinner"></div>
+                                        </div>
+                                    </div>
+                                    <div class="image-info">
+                                        <div class="image-type">${img.type}</div>
+                                        <div class="image-url">${img.url.substring(0, 50)}...</div>
+                                        <div class="image-status">
+                                            <span class="status-icon loading"></span>
+                                            <span class="status-text">等待检查</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(articleDiv);
+            });
+
+            updateSummary();
+        }
+
+        function toggleArticle(header) {
+            header.parentElement.classList.toggle('expanded');
+        }
+
+        function expandAll() {
+            document.querySelectorAll('.article-section').forEach(section => {
+                section.classList.add('expanded');
+            });
+        }
+
+        function collapseAll() {
+            document.querySelectorAll('.article-section').forEach(section => {
+                section.classList.remove('expanded');
+            });
+        }
+
+        async function checkAllImages() {
+            successCount = 0;
+            errorCount = 0;
+            document.getElementById('loadingOverlay').classList.add('active');
+
+            for (const article of articlesData) {
+                const images = extractImages(article);
+                let articleSuccess = 0;
+                let articleError = 0;
+
+                for (let i = 0; i < images.length; i++) {
+                    const result = await checkImage(article.id, i, images[i].url);
+                    if (result.success) {
+                        successCount++;
+                        articleSuccess++;
+                    } else {
+                        errorCount++;
+                        articleError++;
+                    }
+                    updateSummary();
+                }
+
+                // Update article badge
+                const badge = document.querySelector(`[data-article-id="${article.id}"].status-badge`);
+                if (articleError === 0) {
+                    badge.className = 'status-badge success';
+                    badge.textContent = `✓ 全部正常 (${articleSuccess}/${images.length})`;
+                } else {
+                    badge.className = 'status-badge error';
+                    badge.textContent = `✗ ${articleError} 个失败`;
+                }
+            }
+
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function checkImage(articleId, imageIndex, url) {
+            return new Promise((resolve) => {
+                const startTime = performance.now();
+                const img = new Image();
+                
+                const grid = document.querySelector(`.image-grid[data-article-id="${articleId}"]`);
+                const card = grid.querySelector(`[data-image-index="${imageIndex}"]`);
+                const preview = card.querySelector('.image-preview');
+                const statusIcon = card.querySelector('.status-icon');
+                const statusText = card.querySelector('.status-text');
+                const info = card.querySelector('.image-info');
+
+                img.onload = function() {
+                    const loadTime = Math.round(performance.now() - startTime);
+                    
+                    preview.innerHTML = '';
+                    const displayImg = document.createElement('img');
+                    displayImg.src = url;
+                    preview.appendChild(displayImg);
+                    
+                    statusIcon.className = 'status-icon success';
+                    statusText.textContent = '加载成功';
+                    
+                    const timeInfo = document.createElement('div');
+                    timeInfo.className = 'load-time';
+                    timeInfo.textContent = `加载时间: ${loadTime}ms`;
+                    info.appendChild(timeInfo);
+                    
+                    resolve({ success: true, time: loadTime });
+                };
+
+                img.onerror = function() {
+                    preview.innerHTML = '<div style="color: #f44336; font-size: 2rem;">✗</div>';
+                    
+                    statusIcon.className = 'status-icon error';
+                    statusText.textContent = '加载失败';
+                    
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.textContent = '图片无法加载';
+                    info.appendChild(errorMsg);
+                    
+                    resolve({ success: false });
+                };
+
+                img.src = url;
+            });
+        }
+
+        function updateSummary() {
+            document.getElementById('totalImages').textContent = totalCount;
+            document.getElementById('successImages').textContent = successCount;
+            document.getElementById('errorImages').textContent = errorCount;
+            
+            const rate = totalCount > 0 ? Math.round((successCount / totalCount) * 100) : 0;
+            document.getElementById('successRate').textContent = rate + '%';
+            
+            const rateElement = document.getElementById('successRate');
+            if (rate === 100) {
+                rateElement.style.color = '#4caf50';
+            } else if (rate >= 80) {
+                rateElement.style.color = '#ff9800';
+            } else {
+                rateElement.style.color = '#f44336';
+            }
+        }
+
+        // Initialize
+        renderArticles();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章图片测试 - Baratza咖啡研磨机</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196f3;
+            border-radius: 4px;
+        }
+        .test-section h2 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+        .image-test {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .image-container {
+            margin: 15px 0;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .status.loading {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .url-display {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976d2;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ 文章图片测试</h1>
+        <p style="color: #666; margin-bottom: 20px;">测试 Baratza Encore Conical Burr Grinder 产品图片</p>
+
+        <div class="test-section">
+            <h2>测试1: 直接加载产品图片</h2>
+            <div class="info-box">
+                <strong>图片URL:</strong>
+                <div class="url-display" id="imageUrl">https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop</div>
+            </div>
+            
+            <div class="image-test">
+                <h3>原始URL测试</h3>
+                <div class="image-container">
+                    <img id="testImage1" src="" alt="Coffee grinder" style="display: none;">
+                    <div id="status1" class="status loading">等待加载...</div>
+                </div>
+            </div>
+
+            <div class="image-test">
+                <h3>优化URL测试（添加auto=format）</h3>
+                <div class="image-container">
+                    <img id="testImage2" src="" alt="Coffee grinder" style="display: none;">
+                    <div id="status2" class="status loading">等待加载...</div>
+                </div>
+                <div class="url-display" id="optimizedUrl"></div>
+            </div>
+
+            <button onclick="testImages()">🔄 开始测试图片</button>
+        </div>
+
+        <div class="test-section">
+            <h2>测试2: 查看咖啡文章完整数据</h2>
+            <button onclick="showArticleData()">📄 显示文章数据</button>
+            <div id="articleDataDisplay"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试3: 在文章页面中打开</h2>
+            <div class="info-box">
+                <strong>咖啡文章 (ID 5):</strong> Specialty Coffee at Home
+                <br><br>
+                <a href="article.html?id=5" target="_blank" style="display: inline-block; padding: 10px 20px; background: #4caf50; color: white; text-decoration: none; border-radius: 4px;">
+                    打开咖啡文章查看产品图片
+                </a>
+            </div>
+            <p style="margin-top: 15px; color: #666;">
+                在文章中找到 "Featured Product: Baratza Encore Conical Burr Grinder" 部分，检查图片是否显示。
+            </p>
+        </div>
+
+        <div class="test-section">
+            <h2>测试4: 检查所有产品图片</h2>
+            <button onclick="checkAllProductImages()">🔍 检查所有产品图片</button>
+            <div id="allImagesDisplay"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 问题排查清单</h2>
+            <div style="background: white; padding: 15px; border-radius: 4px;">
+                <h3 style="margin-bottom: 10px;">如果图片不显示，请检查：</h3>
+                <ul style="line-height: 1.8; padding-left: 20px;">
+                    <li>✅ 网络连接是否正常</li>
+                    <li>✅ Unsplash服务是否可访问</li>
+                    <li>✅ 浏览器是否阻止了图片加载</li>
+                    <li>✅ 是否有广告拦截插件干扰</li>
+                    <li>✅ 图片URL是否正确</li>
+                    <li>✅ 浏览器控制台是否有错误（按F12查看）</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 快速修复方法</h2>
+            <div style="background: white; padding: 15px; border-radius: 4px;">
+                <h3 style="margin-bottom: 10px;">方法1: 清除缓存</h3>
+                <p>按 <code>Ctrl+Shift+Delete</code> 清除浏览器缓存，然后刷新页面。</p>
+                
+                <h3 style="margin: 15px 0 10px;">方法2: 强制刷新</h3>
+                <p>在文章页面按 <code>Ctrl+F5</code> 强制刷新。</p>
+                
+                <h3 style="margin: 15px 0 10px;">方法3: 检查网络</h3>
+                <p>确保可以访问 <code>images.unsplash.com</code></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        const imageUrl = 'https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop';
+        const optimizedUrl = 'https://images.unsplash.com/photo-1587301289919-6ec8f4c9e18a?w=400&h=400&fit=crop&q=80&auto=format';
+
+        document.getElementById('imageUrl').textContent = imageUrl;
+        document.getElementById('optimizedUrl').textContent = optimizedUrl;
+
+        function testImages() {
+            testImage('testImage1', 'status1', imageUrl, '原始URL');
+            testImage('testImage2', 'status2', optimizedUrl, '优化URL');
+        }
+
+        function testImage(imgId, statusId, url, label) {
+            const img = document.getElementById(imgId);
+            const status = document.getElementById(statusId);
+            
+            status.className = 'status loading';
+            status.textContent = '⏳ 加载中...';
+            img.style.display = 'none';
+
+            const testImg = new Image();
+            const startTime = performance.now();
+
+            testImg.onload = function() {
+                const loadTime = Math.round(performance.now() - startTime);
+                status.className = 'status success';
+                status.textContent = `✅ 成功！加载时间: ${loadTime}ms`;
+                img.src = url;
+                img.style.display = 'block';
+                console.log(`${label} 加载成功:`, url);
+            };
+
+            testImg.onerror = function() {
+                status.className = 'status error';
+                status.textContent = '❌ 加载失败！';
+                console.error(`${label} 加载失败:`, url);
+            };
+
+            testImg.src = url;
+        }
+
+        function showArticleData() {
+            const article = articlesData.find(a => a.id === 5);
+            if (!article) {
+                alert('未找到咖啡文章数据！');
+                return;
+            }
+
+            const container = document.getElementById('articleDataDisplay');
+            
+            // 提取文章内容中的所有图片
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = article.content;
+            const images = tempDiv.querySelectorAll('img');
+            
+            container.innerHTML = `
+                <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 4px;">
+                    <h3>文章信息:</h3>
+                    <p><strong>ID:</strong> ${article.id}</p>
+                    <p><strong>标题:</strong> ${article.title}</p>
+                    <p><strong>分类:</strong> ${article.categoryName}</p>
+                    <p><strong>作者:</strong> ${article.author}</p>
+                    <br>
+                    <h3>文章中的图片 (${images.length}张):</h3>
+                    <ol style="line-height: 1.8;">
+                        ${Array.from(images).map((img, index) => `
+                            <li>
+                                <strong>${img.alt || '无描述'}</strong>
+                                <br><code style="font-size: 11px;">${img.src}</code>
+                                <br><span style="color: ${img.src.includes('photo-1587301289919') ? '#4caf50' : '#666'};">
+                                    ${img.src.includes('photo-1587301289919') ? '👉 这是 Baratza 研磨机图片' : ''}
+                                </span>
+                            </li>
+                        `).join('')}
+                    </ol>
+                </div>
+            `;
+        }
+
+        function checkAllProductImages() {
+            const allImages = [];
+            
+            articlesData.forEach(article => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = article.content;
+                const productCards = tempDiv.querySelectorAll('.product-card');
+                
+                productCards.forEach(card => {
+                    const img = card.querySelector('img');
+                    const title = card.querySelector('h3');
+                    if (img && title) {
+                        allImages.push({
+                            article: article.title,
+                            product: title.textContent,
+                            url: img.src,
+                            alt: img.alt
+                        });
+                    }
+                });
+            });
+
+            const container = document.getElementById('allImagesDisplay');
+            container.innerHTML = `
+                <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 4px;">
+                    <h3>找到 ${allImages.length} 个产品图片:</h3>
+                    <div style="margin-top: 15px;">
+                        ${allImages.map((item, index) => `
+                            <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                                <h4 style="color: #2196f3;">${index + 1}. ${item.product}</h4>
+                                <p><strong>文章:</strong> ${item.article}</p>
+                                <p><strong>Alt:</strong> ${item.alt}</p>
+                                <p><strong>URL:</strong> <code style="font-size: 11px;">${item.url}</code></p>
+                                <div style="margin-top: 10px; text-align: center;">
+                                    <img src="${item.url}" alt="${item.alt}" style="max-width: 200px; border: 1px solid #ddd; border-radius: 4px;" 
+                                         onload="this.nextElementSibling.textContent = '✅ 加载成功'"
+                                         onerror="this.nextElementSibling.textContent = '❌ 加载失败'; this.nextElementSibling.style.color = 'red'">
+                                    <div style="margin-top: 5px; font-size: 14px;">⏳ 加载中...</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载时自动测试
+        window.addEventListener('load', () => {
+            console.log('页面已加载，准备测试图片');
+            console.log('Baratza 图片URL:', imageUrl);
+            
+            // 3秒后自动开始测试
+            setTimeout(() => {
+                console.log('自动开始测试...');
+                testImages();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

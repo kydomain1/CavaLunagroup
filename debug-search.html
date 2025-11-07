@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索调试工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196f3;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1976d2; }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .article-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 搜索功能调试工具</h1>
+        
+        <div class="test-section">
+            <h2>测试1: 加载文章数据</h2>
+            <button onclick="testArticlesData()">检查文章数据</button>
+            <div id="articlesDataResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试2: 搜索功能测试</h2>
+            <input type="text" id="searchInput" placeholder="输入搜索关键词" style="padding: 10px; width: 300px; margin-right: 10px;">
+            <button onclick="testSearch()">执行搜索</button>
+            <div id="searchResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试3: 预定义搜索测试</h2>
+            <button onclick="testSearchKeyword('Specialty Coffee at Home')">搜索: Specialty Coffee at Home</button>
+            <button onclick="testSearchKeyword('coffee')">搜索: coffee</button>
+            <button onclick="testSearchKeyword('fashion')">搜索: fashion</button>
+            <button onclick="testSearchKeyword('beauty')">搜索: beauty</button>
+            <div id="predefinedResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试4: 查看所有文章</h2>
+            <button onclick="showAllArticles()">显示所有文章</button>
+            <div id="allArticlesResult"></div>
+        </div>
+    </div>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        // 搜索函数（从search.js复制）
+        function searchArticles(query) {
+            const searchQuery = query.toLowerCase();
+            
+            return articlesData.filter(article => {
+                const searchableText = `
+                    ${article.title} 
+                    ${article.excerpt} 
+                    ${article.categoryName}
+                    ${article.author}
+                `.toLowerCase();
+                
+                return searchableText.includes(searchQuery);
+            });
+        }
+
+        // 测试文章数据
+        function testArticlesData() {
+            const resultDiv = document.getElementById('articlesDataResult');
+            
+            if (typeof articlesData === 'undefined') {
+                resultDiv.innerHTML = '<div class="result error">❌ 错误：articlesData 未定义！</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="result">
+                    ✅ 成功加载！
+                    <br>文章总数: <strong>${articlesData.length}</strong>
+                    <br>文章列表:
+                    <ul>
+                        ${articlesData.map((article, index) => `
+                            <li>ID ${article.id}: ${article.title} (${article.categoryName})</li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // 测试搜索
+        function testSearch() {
+            const query = document.getElementById('searchInput').value;
+            const resultDiv = document.getElementById('searchResult');
+
+            if (!query) {
+                resultDiv.innerHTML = '<div class="result error">请输入搜索关键词</div>';
+                return;
+            }
+
+            const results = searchArticles(query);
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <strong>搜索关键词:</strong> "${query}"
+                    <br><strong>找到结果:</strong> ${results.length} 篇
+                    <br><br>
+                    ${results.length > 0 ? `
+                        <strong>匹配的文章:</strong>
+                        ${results.map(article => `
+                            <div class="article-item">
+                                <strong>ID ${article.id}:</strong> ${article.title}
+                                <br><small>分类: ${article.categoryName} | 作者: ${article.author}</small>
+                                <br><small>摘要: ${article.excerpt.substring(0, 100)}...</small>
+                            </div>
+                        `).join('')}
+                    ` : '<p style="color: #c62828;">没有找到匹配的文章</p>'}
+                </div>
+            `;
+        }
+
+        // 测试预定义关键词
+        function testSearchKeyword(keyword) {
+            const resultDiv = document.getElementById('predefinedResult');
+            const results = searchArticles(keyword);
+            
+            console.log('搜索:', keyword);
+            console.log('结果:', results);
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <strong>搜索关键词:</strong> "${keyword}"
+                    <br><strong>找到结果:</strong> ${results.length} 篇
+                    <br><br>
+                    ${results.length > 0 ? `
+                        ${results.map(article => `
+                            <div class="article-item">
+                                <strong>✅ ID ${article.id}:</strong> ${article.title}
+                                <br><small>📁 ${article.categoryName} | 👤 ${article.author} | 📅 ${article.date}</small>
+                                <br><small>📝 ${article.excerpt.substring(0, 150)}...</small>
+                            </div>
+                        `).join('')}
+                    ` : `
+                        <p style="color: #c62828; padding: 10px; background: #ffebee; border-radius: 4px;">
+                            ❌ 没有找到匹配的文章
+                        </p>
+                    `}
+                </div>
+            `;
+        }
+
+        // 显示所有文章
+        function showAllArticles() {
+            const resultDiv = document.getElementById('allArticlesResult');
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <strong>所有文章列表（共 ${articlesData.length} 篇）:</strong>
+                    <br><br>
+                    ${articlesData.map(article => `
+                        <div class="article-item">
+                            <strong>ID ${article.id}:</strong> ${article.title}
+                            <br><small>📁 ${article.categoryName} | 👤 ${article.author} | 📅 ${article.date}</small>
+                            <br><small>🏷️ Category: ${article.category}</small>
+                            <br><small>📝 ${article.excerpt}</small>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 页面加载时自动检查
+        window.addEventListener('load', () => {
+            console.log('调试页面已加载');
+            console.log('articlesData:', articlesData);
+        });
+    </script>
+</body>
+</html>
+

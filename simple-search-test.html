@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Search Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo"><a href="index.html">CavaLunagroup</a></div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="page-hero">
+        <div class="container">
+            <h1>🔍 搜索测试页面</h1>
+            <p id="searchQuery">测试搜索功能</p>
+        </div>
+    </section>
+
+    <section class="search-section">
+        <div class="container">
+            <form class="search-box" onsubmit="performSearch(event)">
+                <input type="text" id="searchInput" placeholder="输入搜索关键词..." value="coffee" required>
+                <button type="submit">搜索</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="articles">
+        <div class="container">
+            <!-- 调试信息 -->
+            <div style="background: #f0f0f0; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                <h3>调试信息</h3>
+                <div id="debugInfo"></div>
+            </div>
+
+            <!-- 搜索结果信息 -->
+            <div id="searchResultsInfo" class="search-results-info"></div>
+
+            <!-- 文章网格 -->
+            <div id="articlesGrid" class="articles-grid"></div>
+        </div>
+    </section>
+
+    <footer class="footer" style="margin-top: 100px;">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>简化版搜索测试页面 - CavaLunagroup</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        // 简化的搜索函数
+        function searchArticles(query) {
+            console.log('执行搜索:', query);
+            const searchQuery = query.toLowerCase();
+            
+            const results = articlesData.filter(article => {
+                const searchableText = `
+                    ${article.title} 
+                    ${article.excerpt} 
+                    ${article.categoryName}
+                    ${article.author}
+                `.toLowerCase();
+                
+                const matches = searchableText.includes(searchQuery);
+                console.log(`文章 ${article.id} (${article.title}): ${matches ? '✅匹配' : '❌不匹配'}`);
+                
+                return matches;
+            });
+            
+            console.log('搜索结果:', results);
+            return results;
+        }
+
+        // 显示调试信息
+        function showDebugInfo(query, results) {
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = `
+                <div style="font-family: monospace; font-size: 14px;">
+                    <p><strong>搜索关键词:</strong> "${query}"</p>
+                    <p><strong>总文章数:</strong> ${articlesData ? articlesData.length : 0}</p>
+                    <p><strong>找到结果:</strong> ${results.length}</p>
+                    <p><strong>结果ID:</strong> [${results.map(r => r.id).join(', ')}]</p>
+                    <br>
+                    <p><strong>匹配的文章:</strong></p>
+                    <ul>
+                        ${results.map(r => `
+                            <li>ID ${r.id}: ${r.title} (${r.categoryName})</li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // 执行搜索
+        function performSearch(event) {
+            if (event) event.preventDefault();
+            
+            const query = document.getElementById('searchInput').value;
+            document.getElementById('searchQuery').textContent = `搜索: "${query}"`;
+            
+            console.log('===== 开始搜索 =====');
+            console.log('关键词:', query);
+            console.log('文章数据:', articlesData);
+            
+            const results = searchArticles(query);
+            
+            // 显示调试信息
+            showDebugInfo(query, results);
+            
+            // 显示结果信息
+            const infoDiv = document.getElementById('searchResultsInfo');
+            if (results.length === 0) {
+                infoDiv.innerHTML = `<p>没有找到包含 "<strong>${query}</strong>" 的文章</p>`;
+            } else if (results.length === 1) {
+                infoDiv.innerHTML = `<p>找到 <strong>1</strong> 篇包含 "<strong>${query}</strong>" 的文章</p>`;
+            } else {
+                infoDiv.innerHTML = `<p>找到 <strong>${results.length}</strong> 篇包含 "<strong>${query}</strong>" 的文章</p>`;
+            }
+            
+            // 显示文章卡片
+            displayResults(results);
+            
+            console.log('===== 搜索完成 =====');
+        }
+
+        // 显示结果
+        function displayResults(results) {
+            const grid = document.getElementById('articlesGrid');
+            grid.innerHTML = '';
+            
+            if (results.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem 0; color: #666;">
+                        <p style="font-size: 1.125rem;">没有找到匹配的文章</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            results.forEach(article => {
+                const card = document.createElement('article');
+                card.className = 'article-card';
+                card.style.opacity = '1';
+                card.style.animation = 'none';
+                
+                card.innerHTML = `
+                    <a href="article.html?id=${article.id}" class="article-link">
+                        <div class="article-image" style="background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 3rem;">📄</span>
+                        </div>
+                        <div class="article-content">
+                            <div class="article-meta">
+                                <span class="article-category">${article.categoryName}</span>
+                                <span>•</span>
+                                <span class="article-date">${article.date}</span>
+                            </div>
+                            <h2 class="article-title">${article.title}</h2>
+                            <p class="article-excerpt">${article.excerpt}</p>
+                            <span class="read-more">Read More</span>
+                        </div>
+                    </a>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // 页面加载时自动执行搜索
+        window.addEventListener('load', () => {
+            console.log('页面已加载');
+            console.log('文章数据检查:', articlesData);
+            console.log('文章总数:', articlesData ? articlesData.length : 0);
+            
+            // 从URL获取搜索参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlQuery = urlParams.get('q');
+            
+            if (urlQuery) {
+                document.getElementById('searchInput').value = urlQuery;
+                performSearch();
+            } else {
+                // 默认搜索coffee
+                performSearch();
+            }
+        });
+
+        // 添加快速测试按钮
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.search-section .container');
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.style.cssText = 'margin-top: 10px; text-align: center;';
+            buttonsDiv.innerHTML = `
+                <button type="button" onclick="quickSearch('coffee')" style="margin: 5px; padding: 8px 16px;">测试: coffee</button>
+                <button type="button" onclick="quickSearch('fashion')" style="margin: 5px; padding: 8px 16px;">测试: fashion</button>
+                <button type="button" onclick="quickSearch('beauty')" style="margin: 5px; padding: 8px 16px;">测试: beauty</button>
+                <button type="button" onclick="quickSearch('garden')" style="margin: 5px; padding: 8px 16px;">测试: garden</button>
+                <button type="button" onclick="quickSearch('Specialty Coffee at Home')" style="margin: 5px; padding: 8px 16px;">测试: 完整标题</button>
+            `;
+            container.appendChild(buttonsDiv);
+        });
+
+        function quickSearch(keyword) {
+            document.getElementById('searchInput').value = keyword;
+            performSearch();
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 主页 -->
+  <url>
+    <loc>https://yourdomain.com/</loc>
+    <lastmod>2025-11-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- 关于页面 -->
+  <url>
+    <loc>https://yourdomain.com/about.html</loc>
+    <lastmod>2025-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- 联系页面 -->
+  <url>
+    <loc>https://yourdomain.com/contact.html</loc>
+    <lastmod>2025-11-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- 搜索页面 -->
+  <url>
+    <loc>https://yourdomain.com/search.html</loc>
+    <lastmod>2025-11-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- 隐私政策 -->
+  <url>
+    <loc>https://yourdomain.com/privacy.html</loc>
+    <lastmod>2025-11-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- 文章 1: Sustainable Fashion -->
+  <url>
+    <loc>https://yourdomain.com/article.html?id=1</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- 文章 2: Clean Beauty -->
+  <url>
+    <loc>https://yourdomain.com/article.html?id=2</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- 文章 3: Minimalist Garden -->
+  <url>
+    <loc>https://yourdomain.com/article.html?id=3</loc>
+    <lastmod>2025-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- 文章 4: Digital Nomad Insurance -->
+  <url>
+    <loc>https://yourdomain.com/article.html?id=4</loc>
+    <lastmod>2025-06-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- 文章 5: Specialty Coffee -->
+  <url>
+    <loc>https://yourdomain.com/article.html?id=5</loc>
+    <lastmod>2025-08-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>
+

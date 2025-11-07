@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章链接检查工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            text-align: center;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        .status-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .status-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .status-card.success .value {
+            color: #4caf50;
+        }
+        .status-card.warning .value {
+            color: #ff9800;
+        }
+        .status-card.error .value {
+            color: #f44336;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .article-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .article-section h3 {
+            color: #2196f3;
+            margin-bottom: 15px;
+        }
+        .link-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid #dee2e6;
+        }
+        .link-item.checking {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        .link-item.success {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+        .link-item.error {
+            border-color: #f44336;
+            background: #fff5f5;
+        }
+        .link-status {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .link-status.checking {
+            background: #ffc107;
+            color: white;
+        }
+        .link-status.success {
+            background: #4caf50;
+            color: white;
+        }
+        .link-status.error {
+            background: #f44336;
+            color: white;
+        }
+        .link-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .link-url {
+            font-size: 0.9rem;
+            color: #666;
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+        .link-type {
+            font-size: 0.8rem;
+            color: #999;
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .summary {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .summary h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .alert.info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            color: #0c5460;
+        }
+        .alert.success {
+            background: #d4edda;
+            border-left: 4px solid #155724;
+            color: #155724;
+        }
+        .alert.warning {
+            background: #fff3cd;
+            border-left: 4px solid #856404;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 文章链接检查工具</h1>
+        <p class="subtitle">自动检测所有文章中的链接状态</p>
+
+        <div class="status-bar">
+            <div class="status-card">
+                <div class="label">总文章数</div>
+                <div class="value" id="totalArticles">0</div>
+            </div>
+            <div class="status-card">
+                <div class="label">总链接数</div>
+                <div class="value" id="totalLinks">0</div>
+            </div>
+            <div class="status-card success">
+                <div class="label">有效链接</div>
+                <div class="value" id="validLinks">0</div>
+            </div>
+            <div class="status-card error">
+                <div class="label">失效链接</div>
+                <div class="value" id="brokenLinks">0</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <button onclick="startCheck()" id="checkBtn">🚀 开始检查</button>
+
+        <div id="alertContainer"></div>
+        
+        <div class="results" id="results" style="display: none;">
+            <div class="summary">
+                <h3>📊 检查摘要</h3>
+                <div id="summaryContent"></div>
+            </div>
+            <div id="articleResults"></div>
+        </div>
+    </div>
+
+    <script src="js/articles-data.js"></script>
+    <script>
+        let allLinks = [];
+        let checkResults = [];
+
+        function extractLinks(htmlContent) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const links = [];
+
+            // 提取所有图片链接
+            doc.querySelectorAll('img').forEach(img => {
+                const src = img.getAttribute('src');
+                const onerror = img.getAttribute('onerror');
+                
+                if (src) {
+                    links.push({
+                        url: src,
+                        type: 'image',
+                        alt: img.getAttribute('alt') || '无alt文字',
+                        element: 'img'
+                    });
+                }
+
+                // 提取onerror中的备用链接
+                if (onerror) {
+                    const backupMatch = onerror.match(/this\.src='([^']+)'/);
+                    if (backupMatch) {
+                        links.push({
+                            url: backupMatch[1],
+                            type: 'backup-image',
+                            alt: img.getAttribute('alt') + ' (备用)',
+                            element: 'img-fallback'
+                        });
+                    }
+                }
+            });
+
+            // 提取所有a标签链接
+            doc.querySelectorAll('a').forEach(a => {
+                const href = a.getAttribute('href');
+                if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+                    links.push({
+                        url: href,
+                        type: 'link',
+                        text: a.textContent || '无文字',
+                        element: 'a'
+                    });
+                }
+            });
+
+            return links;
+        }
+
+        function categorizeLinks(links) {
+            const categories = {
+                unsplash: [],
+                pexels: [],
+                pixabay: [],
+                internal: [],
+                external: [],
+                other: []
+            };
+
+            links.forEach(link => {
+                const url = link.url.toLowerCase();
+                if (url.includes('unsplash.com')) {
+                    categories.unsplash.push(link);
+                } else if (url.includes('pexels.com')) {
+                    categories.pexels.push(link);
+                } else if (url.includes('pixabay.com')) {
+                    categories.pixabay.push(link);
+                } else if (url.startsWith('http://') || url.startsWith('https://')) {
+                    categories.external.push(link);
+                } else if (url.includes('.html') || url.startsWith('/') || url.startsWith('./')) {
+                    categories.internal.push(link);
+                } else {
+                    categories.other.push(link);
+                }
+            });
+
+            return categories;
+        }
+
+        async function checkLink(url, type) {
+            // 对于图片链接，我们使用Image对象测试
+            if (type === 'image' || type === 'backup-image') {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    const timeout = setTimeout(() => {
+                        resolve({ success: false, status: 'timeout', message: '加载超时(5秒)' });
+                    }, 5000);
+
+                    img.onload = () => {
+                        clearTimeout(timeout);
+                        resolve({ success: true, status: 200, message: '图片可访问' });
+                    };
+
+                    img.onerror = () => {
+                        clearTimeout(timeout);
+                        resolve({ success: false, status: 'error', message: '图片无法加载' });
+                    };
+
+                    img.src = url;
+                });
+            }
+
+            // 对于普通链接，我们只能通过fetch测试（可能被CORS阻止）
+            try {
+                const response = await fetch(url, {
+                    method: 'HEAD',
+                    mode: 'no-cors', // 避免CORS问题
+                    cache: 'no-cache'
+                });
+                return { success: true, status: response.status || 'opaque', message: '链接可访问' };
+            } catch (error) {
+                return { success: false, status: 'error', message: error.message };
+            }
+        }
+
+        async function startCheck() {
+            if (!articlesData || articlesData.length === 0) {
+                alert('无法加载文章数据！');
+                return;
+            }
+
+            const btn = document.getElementById('checkBtn');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ 检查中...';
+
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('alertContainer').innerHTML = `
+                <div class="alert info">
+                    <strong>ℹ️ 提示</strong><br>
+                    正在检查所有文章的链接，这可能需要几分钟时间...<br>
+                    由于浏览器的CORS限制，某些外部链接可能无法准确检测。
+                </div>
+            `;
+
+            // 收集所有链接
+            allLinks = [];
+            articlesData.forEach(article => {
+                const links = extractLinks(article.content);
+                allLinks.push({
+                    articleId: article.id,
+                    articleTitle: article.title,
+                    links: links
+                });
+            });
+
+            // 更新统计
+            const totalLinks = allLinks.reduce((sum, a) => sum + a.links.length, 0);
+            document.getElementById('totalArticles').textContent = articlesData.length;
+            document.getElementById('totalLinks').textContent = totalLinks;
+
+            // 显示结果区域
+            document.getElementById('results').style.display = 'block';
+
+            // 开始检查每篇文章
+            let checkedCount = 0;
+            let validCount = 0;
+            let brokenCount = 0;
+
+            const articleResults = document.getElementById('articleResults');
+            articleResults.innerHTML = '';
+
+            for (const articleData of allLinks) {
+                const articleSection = document.createElement('div');
+                articleSection.className = 'article-section';
+                articleSection.innerHTML = `
+                    <h3>📄 ${articleData.articleTitle} (文章 #${articleData.articleId})</h3>
+                    <p style="color: #666; margin-bottom: 15px;">共 ${articleData.links.length} 个链接</p>
+                    <div id="article-${articleData.articleId}-links"></div>
+                `;
+                articleResults.appendChild(articleSection);
+
+                const linksContainer = document.getElementById(`article-${articleData.articleId}-links`);
+
+                // 检查每个链接
+                for (const link of articleData.links) {
+                    const linkItem = document.createElement('div');
+                    linkItem.className = 'link-item checking';
+                    linkItem.innerHTML = `
+                        <div class="link-status checking">⏳</div>
+                        <div class="link-info">
+                            <div class="link-url">${link.url.substring(0, 80)}${link.url.length > 80 ? '...' : ''}</div>
+                            <span class="link-type">${link.type}</span>
+                            <span style="margin-left: 10px; font-size: 0.8rem; color: #999;">检查中...</span>
+                        </div>
+                    `;
+                    linksContainer.appendChild(linkItem);
+
+                    // 检查链接
+                    const result = await checkLink(link.url, link.type);
+                    
+                    checkedCount++;
+                    if (result.success) {
+                        validCount++;
+                        linkItem.className = 'link-item success';
+                        linkItem.querySelector('.link-status').className = 'link-status success';
+                        linkItem.querySelector('.link-status').textContent = '✓';
+                        linkItem.querySelector('.link-info').innerHTML = `
+                            <div class="link-url">${link.url.substring(0, 80)}${link.url.length > 80 ? '...' : ''}</div>
+                            <span class="link-type">${link.type}</span>
+                            <span style="margin-left: 10px; font-size: 0.8rem; color: #4caf50;">✓ ${result.message}</span>
+                        `;
+                    } else {
+                        brokenCount++;
+                        linkItem.className = 'link-item error';
+                        linkItem.querySelector('.link-status').className = 'link-status error';
+                        linkItem.querySelector('.link-status').textContent = '✗';
+                        linkItem.querySelector('.link-info').innerHTML = `
+                            <div class="link-url">${link.url.substring(0, 80)}${link.url.length > 80 ? '...' : ''}</div>
+                            <span class="link-type">${link.type}</span>
+                            <span style="margin-left: 10px; font-size: 0.8rem; color: #f44336;">✗ ${result.message}</span>
+                        `;
+                    }
+
+                    // 更新进度
+                    const progress = (checkedCount / totalLinks) * 100;
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    document.getElementById('validLinks').textContent = validCount;
+                    document.getElementById('brokenLinks').textContent = brokenCount;
+
+                    // 小延迟避免过快
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            // 显示最终总结
+            showSummary(validCount, brokenCount, totalLinks);
+
+            btn.disabled = false;
+            btn.innerHTML = '🔄 重新检查';
+        }
+
+        function showSummary(validCount, brokenCount, totalLinks) {
+            const alertContainer = document.getElementById('alertContainer');
+            const successRate = ((validCount / totalLinks) * 100).toFixed(1);
+
+            if (brokenCount === 0) {
+                alertContainer.innerHTML = `
+                    <div class="alert success">
+                        <strong>✅ 太棒了！所有链接都有效！</strong><br>
+                        检查了 ${totalLinks} 个链接，全部可以正常访问。
+                    </div>
+                `;
+            } else if (brokenCount < totalLinks * 0.1) {
+                alertContainer.innerHTML = `
+                    <div class="alert warning">
+                        <strong>⚠️ 发现少量失效链接</strong><br>
+                        检查了 ${totalLinks} 个链接，${brokenCount} 个无法访问（${(100 - successRate).toFixed(1)}%）。<br>
+                        大部分链接工作正常，但建议检查失效的链接。
+                    </div>
+                `;
+            } else {
+                alertContainer.innerHTML = `
+                    <div class="alert warning">
+                        <strong>⚠️ 发现较多失效链接</strong><br>
+                        检查了 ${totalLinks} 个链接，${brokenCount} 个无法访问（${(100 - successRate).toFixed(1)}%）。<br>
+                        <br>
+                        <strong>注意：</strong>由于您的网络环境限制（防火墙/DNS），某些图片服务可能被阻止。<br>
+                        这不一定表示链接失效，可能只是网络无法访问这些服务。
+                    </div>
+                `;
+            }
+
+            // 分类统计
+            const allLinksFlat = allLinks.flatMap(a => a.links);
+            const categories = categorizeLinks(allLinksFlat);
+
+            document.getElementById('summaryContent').innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">Unsplash图片</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-top: 5px;">${categories.unsplash.length}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">Pexels图片</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-top: 5px;">${categories.pexels.length}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">Pixabay图片</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-top: 5px;">${categories.pixabay.length}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">内部链接</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-top: 5px;">${categories.internal.length}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">外部链接</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #333; margin-top: 5px;">${categories.external.length}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div style="font-size: 0.9rem; color: #666;">成功率</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: ${successRate >= 80 ? '#4caf50' : successRate >= 50 ? '#ff9800' : '#f44336'}; margin-top: 5px;">${successRate}%</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载后显示提示
+        window.addEventListener('load', function() {
+            if (typeof articlesData === 'undefined') {
+                document.getElementById('alertContainer').innerHTML = `
+                    <div class="alert warning">
+                        <strong>⚠️ 无法加载文章数据</strong><br>
+                        请确保在正确的目录中打开此文件。
+                    </div>
+                `;
+                document.getElementById('checkBtn').disabled = true;
+            } else {
+                document.getElementById('totalArticles').textContent = articlesData.length;
+            }
+        });
+    </script>
+</body>
+</html>
+
