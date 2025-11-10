@@ -146,7 +146,7 @@ function createArticleCard(article) {
     
     // Create the card structure
     const link = document.createElement('a');
-    link.href = `article.html?id=${article.id}`;
+    link.href = article.customUrl ? article.customUrl : `article.html?id=${article.id}`;
     link.className = 'article-link';
     
     // Create image container with optimized lazy loading
