@@ -77,7 +77,7 @@ const articlesData = [
         slug: "explore-exotic-destinations-french-bee-airlines",
         category: "travel",
         categoryName: "Travel & Accommodation",
-        date: "2025-11-10",
+        date: "2025-10-05",
         author: "CavaLunagroup Editors",
         excerpt: "Smart fares, modern A350 comfort, and sunshine‑ready routes. See Tahiti, La Réunion, and Paris ideas plus curated picks.",
         featuredImage: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop",
